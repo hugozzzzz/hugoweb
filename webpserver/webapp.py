@@ -1,4 +1,3 @@
-#简易版封装使用
 #from db.demo import session,nav
 #for i in session.query(nav).all():
     #print(i.name)

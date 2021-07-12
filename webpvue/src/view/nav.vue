@@ -12,9 +12,12 @@
             <span v-text="item.name" class="space"></span>
             <div v-text="item.description" class="space"></div>
             <div>
-              <el-button size="small" type="primary" icon="el-icon-edit" circle></el-button>
-              <el-button size="small" type="warning" icon="el-icon-star-off" circle></el-button>
-              <el-button size="small" type="danger" icon="el-icon-delete" circle></el-button>
+              <el-button size="small" type="primary" icon="el-icon-edit" circle @click="editUpload(item.id)">
+              </el-button>
+              <el-button size="small" type="warning" icon="el-icon-star-off" circle @click="colNav(item.id)">
+                {{item.collection}}
+              </el-button>
+              <el-button size="small" type="danger" icon="el-icon-delete" circle @click="delNav(item.id)"></el-button>
             </div>
           </div>
         </el-card>
@@ -37,10 +40,31 @@
           <img :src="upPic" ref="upPic" style="width:150px;heigth:150px;">
         </el-form-item>
       </el-form>
-
       <span slot="footer" class="dialog-footer">
         <el-button size="small" @click="uploadbool = false">取 消</el-button>
         <el-button size="small" type="primary" @click="submit()">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog title="修改导航信息" :visible.sync="editbool" center width="400px" :before-close="clearEditSubmit">
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="名称">
+          <el-input v-model="editForm.name" placeholder="填写名称"></el-input>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="editForm.description" placeholder="填写描述"></el-input>
+        </el-form-item>
+        <el-form-item label="导航url">
+          <el-input v-model="editForm.url" placeholder="填写导航url"></el-input>
+        </el-form-item>
+        <el-form-item label="图片">
+          <input type="file" accept="image/png, image/jpeg, image/jpg" @change="preview1()" ref="choosePic1">
+          <img :src="upPic" ref="upPic1" style="width:150px;heigth:150px;">
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="small" @click="editbool = false">取 消</el-button>
+        <el-button size="small" type="primary" @click="editSubmit()">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -49,7 +73,11 @@
 <script>
   import {
     upload,
-    getNavList
+    getNavList,
+    delNav,
+    editNav,
+    collectNav,
+    getNavInfo
   } from "../api/api";
   export default {
     components: {},
@@ -62,7 +90,9 @@
           url: '',
           logobase: ''
         },
+        editForm: {},
         uploadbool: false,
+        editbool: false,
         imageUrl: '',
         navList: [
           //   {
@@ -78,6 +108,73 @@
     computed: {},
     watch: {},
     methods: {
+      colNav(id) {
+        let para = {
+          id: id
+        }
+        collectNav(para).then((res) => {
+          if (res.data) {
+            this.$message({
+              type: "success",
+              message: "收藏+1"
+            })
+            this.getList()
+          }
+        })
+      },
+      delNav(id) {
+        let para = {
+          id: id
+        }
+        delNav(para).then((res) => {
+          if (res.data.result) {
+            this.$message({
+              type: "success",
+              message: res.data.msg
+            })
+            this.getList()
+          }
+        })
+      },
+      editUpload(id) {
+        let para = {
+          id: id
+        }
+        getNavInfo(para).then((res) => {
+          this.editForm = res.data;
+          this.editbool = true;
+        })
+      },
+      editSubmit() {
+        let para = Object.assign({}, this.editForm);
+        console.log(para)
+        editNav(para).then((res) => {
+          if (res.data) {
+            this.$message({
+              type: "success",
+              message: '修改成功'
+            })
+            this.clearEditSubmit();
+            this.getList();
+          }
+        })
+      },
+      clearEditSubmit() {
+        this.editbool = false;
+        this.editForm = {}
+      },
+      preview1() {
+        var that = this
+        let f = that.$refs.choosePic1.files[0];
+        let fr = new FileReader();
+        fr.readAsDataURL(f);
+        //异步函数
+        fr.onload = function () {
+          // console.log(this.result)
+          that.editForm.logobase = this.result;
+          that.$refs.upPic1.src = that.editForm.logobase;
+        }
+      },
       upload() {
         this.uploadbool = true;
       },
