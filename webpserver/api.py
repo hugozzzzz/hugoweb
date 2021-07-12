@@ -15,7 +15,8 @@ app.mount('/static',StaticFiles(directory='./static'),name='static')
 @app.get('/')
 def root():
     return 'Hello! I am Hugo!'
-
+#删除导航信息
+@app.post('/delNav/{navId}')
 # 上传导航信息
 @app.post('/upload')
 def upload(item:Item):
