@@ -37,11 +37,11 @@
         </el-form-item>
         <el-form-item label="图片">
           <input type="file" accept="image/png, image/jpeg, image/jpg" @change="preview()" ref="choosePic">
-          <img :src="upPic" ref="upPic" style="width:150px;heigth:150px;">
+          <img ref="upPic" style="width:150px;heigth:150px;">
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button size="small" @click="uploadbool = false">取 消</el-button>
+        <el-button size="small" @click="clearSubmit">取 消</el-button>
         <el-button size="small" type="primary" @click="submit()">确 定</el-button>
       </span>
     </el-dialog>
@@ -59,11 +59,11 @@
         </el-form-item>
         <el-form-item label="图片">
           <input type="file" accept="image/png, image/jpeg, image/jpg" @change="preview1()" ref="choosePic1">
-          <img :src="upPic" ref="upPic1" style="width:150px;heigth:150px;">
+          <img :src="upPic1" ref="upPic1" style="width:150px;heigth:150px;">
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button size="small" @click="editbool = false">取 消</el-button>
+        <el-button size="small" @click="clearEditSubmit">取 消</el-button>
         <el-button size="small" type="primary" @click="editSubmit()">确 定</el-button>
       </span>
     </el-dialog>
@@ -83,7 +83,7 @@
     components: {},
     data() {
       return {
-        upPic: '',
+        upPic1: '',
         form: {
           name: '',
           description: '',
@@ -94,20 +94,13 @@
         uploadbool: false,
         editbool: false,
         imageUrl: '',
-        navList: [
-          //   {
-          //   id: 1,
-          //   name: 'vue',
-          //   description: 'JavaScript 框架',
-          //   url: 'https://cn.vuejs.org/',
-          //   path: 'static/image/vue.png'
-          // }
-        ]
+        navList: []
       };
     },
     computed: {},
     watch: {},
     methods: {
+      //收藏+1
       colNav(id) {
         let para = {
           id: id
@@ -122,6 +115,7 @@
           }
         })
       },
+      //删除导航
       delNav(id) {
         let para = {
           id: id
@@ -136,12 +130,14 @@
           }
         })
       },
+      //修改导航-----------------------------------------------------
       editUpload(id) {
         let para = {
           id: id
         }
         getNavInfo(para).then((res) => {
           this.editForm = res.data;
+          this.upPic1 = '/api' + res.data.path
           this.editbool = true;
         })
       },
@@ -149,19 +145,23 @@
         let para = Object.assign({}, this.editForm);
         console.log(para)
         editNav(para).then((res) => {
-          if (res.data) {
+          if (res.data.result) {
             this.$message({
               type: "success",
-              message: '修改成功'
+              message: res.data.msg
             })
             this.clearEditSubmit();
             this.getList();
+          } else {
+            this.$message({
+              type: "success",
+              message: res.data.msg
+            })
           }
         })
       },
       clearEditSubmit() {
         this.editbool = false;
-        this.editForm = {}
       },
       preview1() {
         var that = this
@@ -175,6 +175,7 @@
           that.$refs.upPic1.src = that.editForm.logobase;
         }
       },
+      //新增导航--------------------------------------------------
       upload() {
         this.uploadbool = true;
       },
@@ -182,13 +183,18 @@
         let para = Object.assign({}, this.form);
         console.log(para)
         upload(para).then((res) => {
-          if (res.data) {
+          if (res.data.result) {
             this.$message({
               type: "success",
-              message: '上传成功'
+              message: res.data.msg
             })
             this.clearSubmit();
             this.getList();
+          } else {
+            this.$message({
+              type: "warning",
+              message: res.data.msg
+            })
           }
         })
       },
@@ -199,15 +205,16 @@
           description: '',
           url: '',
           logobase: ''
-        }
+        };  
+        // 清空图片预览效果
+        this.$refs.choosePic.value = '';
+        this.$refs.upPic.src = '';
       },
-      moveto(e) {
-        // console.log(e)
-        window.open(e)
-      },
+      //预览显示图片并把base64传给form.logobase
       preview() {
         var that = this
         let f = that.$refs.choosePic.files[0];
+        console.log(f)
         let fr = new FileReader();
         fr.readAsDataURL(f);
         //异步函数
@@ -217,14 +224,21 @@
           that.$refs.upPic.src = that.form.logobase;
         }
       },
+      // 获取导航列表
       getList() {
         let para = {}
         getNavList(para).then((res) => {
           this.navList = res.data
         })
-      }
+      },
+      // 导航跳转
+      moveto(e) {
+        // console.log(e)
+        window.open(e)
+      },
     },
     created() {
+      // 初始化刷新获取导航列表
       this.getList()
     },
     mounted() {},

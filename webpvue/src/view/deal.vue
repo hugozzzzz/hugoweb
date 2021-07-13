@@ -2,7 +2,7 @@
   <div>
     <el-row>
       <el-col :span='2'>
-        <el-image style='width:100px;heigth:100px' :src='noface' :fit="fill" alt='111' :preview-src-list="srcList">
+        <el-image style='width:100px;heigth:100px' :src='noface' fit="fit" alt='111' :preview-src-list="srcList">
         </el-image>
       </el-col>
       <el-col :span='22'></el-col>

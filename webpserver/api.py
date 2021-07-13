@@ -5,6 +5,7 @@ import os
 from fastapi.staticfiles import StaticFiles
 import base64
 from webapp import g,bs_nav
+import datetime
 class Item(BaseModel):
     id:int = None
     name:str = None
@@ -49,21 +50,21 @@ def editNav(item:Item):
         name = item_dict['name']
         description = item_dict['description']
         url = item_dict['url']
-        logobase = item_dict['logobase']
-        if logobase == '':
-            path = f'static/image/vue.png'  
-        else:
+        if item_dict['logobase'] != None:
+            logobase = item_dict['logobase']
             spbase = logobase.split(',')[1]
             logo_info = base64.b64decode(spbase)
             with open(f'static/image/{name}.png','wb') as p:
                 p.write(logo_info)  
-            path = f'static/image/{name}.png'  
+            path = f'static/image/{name}.png'   
+        else:
+            path = item_dict['path']
         info = {'name':name,'description':description,'url':url,'path':path}
         g.query(bs_nav).filter(bs_nav.id == id).update(info)
         g.commit()
-        return True
+        return {"result":True,"msg":'修改成功'}
     except Exception as e:
-        return False
+        return {"result":False,"msg":e}
 #获取单条导航信息
 @app.post('/getNavInfo')
 def getNavInfo(item:Item):
@@ -88,15 +89,16 @@ def upload(item:Item):
         else:
             spbase = logobase.split(',')[1]
             logo_info = base64.b64decode(spbase)
-            with open(f'static/image/{name}.png','wb') as p:
+            filename = name + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+            path = f'static/image/{filename}.png'  
+            with open(path,'wb') as p:
                 p.write(logo_info)  
-            path = f'static/image/{name}.png'  
         info = bs_nav(name = name, description = description, url = url, path = path, collection = 0)  
         g.add(info)
         g.commit()
-        return True
+        return {"result":True,"msg":'上传成功'}
     except Exception as e:
-        return False
+        return {"result":False,"msg":e}
 # 获取导航标签信息    
 @app.post('/getNavList')
 def getNavList():

@@ -40,7 +40,7 @@
       </el-container>
     </el-container>
     <!-- ---------------------------------------------------------------------------------------------------- -->
-    <el-drawer :visible.sync="showbool" direction="ttb" :before-close="handleClose" :withHeader='false'>
+    <el-drawer :visible.sync="showbool" direction="rtl" :before-close="handleClose" :withHeader='false'>
       <el-image :src='noface'>
       </el-image>
     </el-drawer>
